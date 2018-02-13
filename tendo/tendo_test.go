@@ -37,7 +37,7 @@ func TestTendoIgnoreTestPackageSuccess(t *testing.T) {
 func testTendoWithPath(t *testing.T, logLevel LogLevel, targetPath string, expectedPackages int, expectedStructs int, expectedMethods int, expectedFunctions int) {
 	tendo := NewTendo(LogErrors)
 
-	tendo.Inspect(logLevel)
+	tendo.Inspect(targetPath)
 
 	packages, structCount, methodCount, functions := tendo.GetTotals()
 
