@@ -11,7 +11,7 @@ func TestTendoPackageSuccess(t *testing.T) {
 	const expectedMethods = 23
 	const expectedFunctions = 4
 
-	testTendoWithPath(t, targetPath, expectedPackages, expectedStructs, expectedMethods, expectedFunctions)
+	testTendoWithPath(t, LogAll, targetPath, expectedPackages, expectedStructs, expectedMethods, expectedFunctions)
 }
 
 func TestTendoBasicSuccess(t *testing.T) {
@@ -21,7 +21,7 @@ func TestTendoBasicSuccess(t *testing.T) {
 	const expectedMethods = 2
 	const expectedFunctions = 1
 
-	testTendoWithPath(t, targetPath, expectedPackages, expectedStructs, expectedMethods, expectedFunctions)
+	testTendoWithPath(t, LogInfo, targetPath, expectedPackages, expectedStructs, expectedMethods, expectedFunctions)
 }
 
 func TestTendoIgnoreTestPackageSuccess(t *testing.T) {
@@ -31,13 +31,13 @@ func TestTendoIgnoreTestPackageSuccess(t *testing.T) {
 	const expectedMethods = 0
 	const expectedFunctions = 0
 
-	testTendoWithPath(t, targetPath, expectedPackages, expectedStructs, expectedMethods, expectedFunctions)
+	testTendoWithPath(t, LogWarnings, targetPath, expectedPackages, expectedStructs, expectedMethods, expectedFunctions)
 }
 
-func testTendoWithPath(t *testing.T, targetPath string, expectedPackages int, expectedStructs int, expectedMethods int, expectedFunctions int) {
+func testTendoWithPath(t *testing.T, logLevel LogLevel, targetPath string, expectedPackages int, expectedStructs int, expectedMethods int, expectedFunctions int) {
 	tendo := NewTendo(LogErrors)
 
-	tendo.Inspect(targetPath)
+	tendo.Inspect(logLevel)
 
 	packages, structCount, methodCount, functions := tendo.GetTotals()
 
