@@ -15,8 +15,7 @@ func (visitor VisitorFunc) Visit(node ast.Node) ast.Visitor {
 	return visitor(node)
 }
 
-// GetListOfFolders returns a list of valid sub-folders based on the given path
-func GetListOfFolders(path string) ([]string, error) {
+func getListOfFolders(path string) ([]string, error) {
 	folders := []string{}
 	err := filepath.Walk(path, func(path string, file os.FileInfo, err error) error {
 		if err != nil {
@@ -34,9 +33,9 @@ func GetListOfFolders(path string) ([]string, error) {
 
 func isValidFolder(file os.FileInfo, path string) bool {
 	const ignoreHiddenFolders = "."
-	const ignoreHiddenSubFolders = "\\."
 	const allowCurrentFolder = "./"
 	const ignoreVendors = "vendor"
+	var ignoreHiddenSubFolders = filepath.ToSlash("/.")
 
 	isValid := false
 	if file.IsDir() && !strings.Contains(path, ignoreVendors) && !strings.Contains(path, ignoreHiddenSubFolders) &&
