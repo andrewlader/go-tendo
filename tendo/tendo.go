@@ -21,7 +21,7 @@ type Tendo struct {
 	functions      []string
 }
 
-const version = "0.0.3"
+const version = "0.0.1"
 
 const asciiArtTendoTotals = `
 
@@ -104,7 +104,7 @@ func (tendo *Tendo) Inspect(path string) {
 	tendo.logger.println(LogAll, asciiArtTendo)
 	tendo.logger.printf(LogAll, "### Analysis initiating for path --> %s", path)
 
-	folders, err := GetListOfFolders(fullpath)
+	folders, err := getListOfFolders(fullpath)
 	if err != nil {
 		tendo.logger.fatalf(LogErrors, "An error occurred processing the subfolders: %v", err)
 	}
