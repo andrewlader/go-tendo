@@ -25,6 +25,10 @@ type logger struct {
 func newLogger(level LogLevel) *logger {
 	log.SetPrefix("{go-tendo} ")
 
+	if (level < LogAll) || (level > logAlways) {
+		return nil
+	}
+
 	return &logger{
 		level: level,
 	}

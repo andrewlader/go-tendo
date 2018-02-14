@@ -43,10 +43,13 @@ const asciiArtTendo = `
 func NewTendo(logLevel LogLevel) *Tendo {
 	currentPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("An error occurred attempting to identify the current path: %v", err)
 	}
 
 	logger := newLogger(logLevel)
+	if logger == nil {
+		log.Fatal("Failed to created the logger, so quitting...")
+	}
 
 	return &Tendo{
 		currentPath: currentPath,
