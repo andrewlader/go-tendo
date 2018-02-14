@@ -2,7 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/andrewlader/go-tendo)](https://goreportcard.com/report/github.com/andrewlader/go-tendo)
 [![Build Status](https://travis-ci.org/AndrewLader/go-tendo.svg?branch=master)](https://travis-ci.org/AndrewLader/go-tendo)
-[![Coverage Status](https://coveralls.io/repos/github/AndrewLader/go-tendo/badge.svg?branch=master)](https://coveralls.io/github/AndrewLader/go-tendo?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/AndrewLader/go-tendo/badge.svg)](https://coveralls.io/github/AndrewLader/go-tendo)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/AndrewLader/go-tendo/blob/master/LICENSE)
 
 Go application used to walk a Go project and count the legititmate packages, structs, methods and functions.
