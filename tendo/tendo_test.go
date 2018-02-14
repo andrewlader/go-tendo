@@ -4,6 +4,38 @@ import (
 	"testing"
 )
 
+func TestTendoDisplayTotals(t *testing.T) {
+	const targetPath = "../tests/exampletest"
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Error("Displaying totals should not panic.")
+		}
+	}()
+
+	tendo := NewTendo(LogErrors)
+	tendo.Inspect(targetPath)
+
+	tendo.DisplayTotals()
+}
+
+func TestTendoTestClearSuccess(t *testing.T) {
+	const targetPath = "../tests/exampletest"
+
+	tendo := NewTendo(LogErrors)
+	tendo.Inspect(targetPath)
+
+	packages, _, _, _ := tendo.GetTotals()
+
+	tendo.Clear()
+
+	newPackages, _, _, _ := tendo.GetTotals()
+
+	if (packages != 1) || (newPackages != 0) {
+		t.Error("Failed to clear out the data in Tendo instance")
+	}
+}
+
 func TestTendoPackageSuccess(t *testing.T) {
 	const targetPath = "./"
 	const expectedPackages = 1
