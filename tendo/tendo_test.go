@@ -4,19 +4,20 @@ import (
 	"testing"
 )
 
-func TestTendoDisplayTotals(t *testing.T) {
+func TestTendoToString(t *testing.T) {
+	const testVersion = "0.0.1"
 	const targetPath = "../tests/exampletest"
 
-	defer func() {
-		if r := recover(); r != nil {
-			t.Error("Displaying totals should not panic.")
-		}
-	}()
-
 	tendo := NewTendo(LogErrors)
+	tendo.version = testVersion
 	tendo.Inspect(targetPath)
 
-	tendo.DisplayTotals()
+	actualTestOutput := tendo.toString()
+
+	if actualTestOutput != expectedTestOutput {
+		t.Errorf("The results of the toString() method did not match the expected results\nExpected:\n%s\n\nActual:\n%s",
+			expectedTestOutput, actualTestOutput)
+	}
 }
 
 func TestTendoTestClearSuccess(t *testing.T) {
@@ -86,3 +87,27 @@ func testTendoWithPath(t *testing.T, logLevel LogLevel, targetPath string, expec
 		t.Errorf("Number of functions should have been %d, but found %d", expectedFunctions, functions)
 	}
 }
+
+const expectedTestOutput = `
+
+╔╦╗┌─┐┌┐┌┌┬┐┌─┐  ╔╦╗┌─┐┌┬┐┌─┐┬  ┌─┐
+ ║ ├┤ │││ │││ │   ║ │ │ │ ├─┤│  └─┐
+ ╩ └─┘┘└┘─┴┘└─┘   ╩ └─┘ ┴ ┴ ┴┴─┘└─┘
+
+Version 0.0.1
+
+Source path: ../tests/exampletest
+
+    package exampletest
+        struct example{}
+            method exampleMethod()
+            method exampleMethodTwo()
+        function exampleFunction()
+
+Totals:
+=======
+Package Count: 1
+Struct Count: 1
+Method Count: 2
+Function Count: 1
+`

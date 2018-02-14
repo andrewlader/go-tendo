@@ -13,6 +13,7 @@ import (
 
 // Tendo is the struct which manages all of the packages in the specified Go project
 type Tendo struct {
+	version        string
 	sourcePath     string
 	currentPath    string
 	logger         *logger
@@ -20,8 +21,6 @@ type Tendo struct {
 	packages       map[string]*pkg
 	functions      []string
 }
-
-const version = "0.0.1"
 
 const asciiArtTendoTotals = `
 
@@ -52,6 +51,7 @@ func NewTendo(logLevel LogLevel) *Tendo {
 	}
 
 	return &Tendo{
+		version:     "0.0.2",
 		currentPath: currentPath,
 		logger:      logger,
 		packages:    make(map[string]*pkg),
@@ -66,16 +66,7 @@ func (tendo *Tendo) Clear() {
 
 // DisplayTotals calls GetTotals() and then displays the results to the console
 func (tendo *Tendo) DisplayTotals() {
-	tendo.logger.printfln(logAlways, "%s%s", asciiArtTendoTotals, version)
-	tendo.logger.printfln(logAlways, "\nSource path: %s", tendo.sourcePath)
-
-	tendo.displayTree()
-
-	packages, structCount, methodCount, functions := tendo.GetTotals()
-
-	tendo.logger.printfln(logAlways, "\nTotals:\n=======\nPackage Count: %d\nStruct Count: %d\nMethod Count: %d\nFunction Count: %d\n",
-		packages, structCount, methodCount, functions)
-
+	tendo.logger.println(logAlways, tendo.toString())
 }
 
 // GetTotals returns the total number of packages, structs and methods
@@ -243,26 +234,37 @@ func (tendo *Tendo) addMethod(structName string, methodName string) {
 	}
 }
 
-func (tendo *Tendo) displayTree() {
+func (tendo *Tendo) toString() string {
 	const indent = "    "
 
-	tendo.logger.println(LogInfo, "\n")
+	outputPrefix := fmt.Sprintf("%s%s\n\nSource path: %s\n", asciiArtTendoTotals, tendo.version, tendo.sourcePath)
+
+	var tree []string
 
 	// for each of the packages
 	for _, pkg := range tendo.packages {
-		tendo.logger.printfln(LogInfo, "%spackage %s", indent, pkg.name)
+		tree = append(tree, fmt.Sprintf("%spackage %s", indent, pkg.name))
 		// display all the structs in the package
 		for _, object := range pkg.objects {
-			tendo.logger.printfln(LogInfo, "%s%sstruct %s", indent, indent, object.name)
+			tree = append(tree, fmt.Sprintf("%s%sstruct %s{}", indent, indent, object.name))
 			// and display all of the methods for the structs
 			for _, method := range object.methods {
-				tendo.logger.printfln(LogInfo, "%s%s%smethod %s()", indent, indent, indent, method)
+				tree = append(tree, fmt.Sprintf("%s%s%smethod %s()", indent, indent, indent, method))
 			}
 		}
 
 		// and display the functions in the package
 		for _, function := range pkg.functions {
-			tendo.logger.printfln(LogInfo, "%s%sfunction %s()", indent, indent, function)
+			tree = append(tree, fmt.Sprintf("%s%sfunction %s()", indent, indent, function))
 		}
 	}
+
+	packages, structCount, methodCount, functions := tendo.GetTotals()
+
+	tree = append(tree, fmt.Sprintf("\nTotals:\n=======\nPackage Count: %d\nStruct Count: %d\nMethod Count: %d\nFunction Count: %d\n",
+		packages, structCount, methodCount, functions))
+
+	output := fmt.Sprintf("%s\n%s", outputPrefix, strings.Join(tree[:], "\n"))
+
+	return output
 }
