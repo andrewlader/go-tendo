@@ -12,7 +12,7 @@ before_install:
 script:
     - go test -v ./...
     - overalls -project=github.com/AndrewLader/go-tendo -covermode=count
-    - $GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci
+    - $GOPATH/bin/goveralls -coverprofile=overalls.coverprofile -service=travis-ci
 
 notifications:
     email: false
