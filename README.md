@@ -5,7 +5,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/AndrewLader/go-tendo/badge.svg)](https://coveralls.io/github/AndrewLader/go-tendo)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/AndrewLader/go-tendo/blob/master/LICENSE)
 
-Go application used to walk a Go project and count the legititmate packages, structs, methods and functions.
+Go application used to walk a Go project and report on the number of structs, methods and functions in each package.
 
 ```
  ██████╗  ██████╗    ████████╗███████╗███╗   ██╗██████╗  ██████╗ 
