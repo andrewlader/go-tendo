@@ -2,19 +2,15 @@ language: go
 sudo: false
 go:
     - 1.9
-    - tip
 
 before_install:
-#    - go get github.com/mattn/goveralls
     - go get github.com/go-playground/overalls
     - go install github.com/go-playground/overalls
 
 script:
-#    - go test -v ./...
     - overalls -project=github.com/AndrewLader/go-tendo -covermode=count
     - mv overalls.coverprofile coverage.txt
     - bash <(curl -s https://codecov.io/bash)
-#    - $GOPATH/bin/goveralls -coverprofile=overalls.coverprofile -service=travis-ci
 
 notifications:
     email: false
