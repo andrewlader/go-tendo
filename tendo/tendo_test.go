@@ -20,6 +20,19 @@ func TestTendoToString(t *testing.T) {
 	}
 }
 
+func TestTendoDisplayTotals(t *testing.T) {
+	const testVersion = "0.0.1"
+	const targetPath = "../tests/exampletest"
+
+	defer handlePanic(t, "Tendo")
+
+	tendo := NewTendo(LogErrors)
+	tendo.version = testVersion
+	tendo.Inspect(targetPath)
+
+	tendo.DisplayTotals()
+}
+
 func TestTendoTestClearSuccess(t *testing.T) {
 	const targetPath = "../tests/exampletest"
 
@@ -85,6 +98,13 @@ func testTendoWithPath(t *testing.T, logLevel LogLevel, targetPath string, expec
 	}
 	if functions != expectedFunctions {
 		t.Errorf("Number of functions should have been %d, but found %d", expectedFunctions, functions)
+	}
+}
+
+func handlePanic(t *testing.T, structName string) {
+	recovery := recover()
+	if recovery != nil {
+		t.Errorf("%s function should not panic.", structName)
 	}
 }
 
