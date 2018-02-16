@@ -7,6 +7,12 @@ type object struct {
 	methods []string
 }
 
+func newObject(name string) *object {
+	return &object{
+		name: name,
+	}
+}
+
 func (obj *object) addMethod(name string) error {
 	methodFound := false
 	for _, existingMethod := range obj.methods {

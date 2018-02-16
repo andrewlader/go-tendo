@@ -55,7 +55,7 @@ func TestTendoPackageSuccess(t *testing.T) {
 	const expectedPackages = 1
 	const expectedStructs = 4
 	const expectedMethods = 23
-	const expectedFunctions = 4
+	const expectedFunctions = 6
 
 	testTendoWithPath(t, LogAll, targetPath, expectedPackages, expectedStructs, expectedMethods, expectedFunctions)
 }
