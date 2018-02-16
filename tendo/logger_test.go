@@ -12,8 +12,15 @@ func TestLoggerPrintlnNoPanic(t *testing.T) {
 func TestLoggerPrintflnNoPanic(t *testing.T) {
 	defer handleLoggerPanic(t)
 
-	logger := newLogger(LogInfo)
-	logger.printfln(LogInfo, "2 + 2 = %d", 4)
+	logger := newLogger(LogTrace)
+	logger.printfln(LogTrace, "2 + 2 = %d", 4)
+}
+
+func TestLoggerPrintflnNoOutputNoPanic(t *testing.T) {
+	defer handleLoggerPanic(t)
+
+	logger := newLogger(LogErrors)
+	logger.printfln(LogAll, "2 + 2 = %d", 4)
 }
 
 func TestLoggerPrintfNoPanic(t *testing.T) {

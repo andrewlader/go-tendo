@@ -171,7 +171,6 @@ func (tendo *Tendo) inspectPackage(pkg *ast.Package) bool {
 	}
 
 	pkg = tendo.pruneTestFiles(pkg)
-	tendo.currentPackage = packageName
 	tendo.addPackage(packageName)
 	return true
 }
@@ -195,13 +194,11 @@ func (tendo *Tendo) pruneTestFiles(pkg *ast.Package) *ast.Package {
 }
 
 func (tendo *Tendo) addPackage(name string) {
+	tendo.currentPackage = name
+
 	_, ok := tendo.packages[name]
 	if !ok {
-		newPkg := &pkg{
-			name:    name,
-			objects: make(map[string]*object),
-		}
-		tendo.packages[name] = newPkg
+		tendo.packages[name] = newPackage(name)
 		tendo.logger.printf(LogTrace, "Added package --> %s", name)
 	}
 }

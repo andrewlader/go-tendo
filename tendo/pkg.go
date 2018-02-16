@@ -10,12 +10,17 @@ type pkg struct {
 	functions []string
 }
 
+func newPackage(name string) *pkg {
+	return &pkg{
+		name:    name,
+		objects: make(map[string]*object),
+	}
+}
+
 func (pkg *pkg) addObject(name string) error {
 	_, ok := pkg.objects[name]
 	if !ok {
-		obj := &object{
-			name: name,
-		}
+		obj := newObject(name)
 		pkg.objects[name] = obj
 		return nil
 	}
