@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/AndrewLader/go-tendo/tendo"
+	"github.com/andrewlader/go-tendo/tendo"
 )
 
 func main() {
