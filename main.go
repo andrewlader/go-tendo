@@ -31,7 +31,7 @@ func parseArguments() (string, tendo.LogLevel) {
 	flag.Parse()
 
 	if len(flag.Args()) < 1 {
-		log.Fatal("Failed to provide enough arguments: no path was provided")
+		log.Print("Failed to provide enough arguments: no path was provided")
 	}
 
 	path := flag.Arg(0)
