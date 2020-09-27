@@ -1,16 +1,13 @@
 language: go
 sudo: false
 go:
-    - 1.9
-
-before_install:
-    - go get github.com/go-playground/overalls
-    - go install github.com/go-playground/overalls
+    - 1.x
 
 script:
-    - overalls -project=github.com/AndrewLader/go-tendo -covermode=count
-    - mv overalls.coverprofile coverage.txt
-    - bash <(curl -s https://codecov.io/bash)
+    - go test -cover ./tendo -coverprofile=coverage.txt -covermode=atomic
 
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
+    
 notifications:
     email: false
