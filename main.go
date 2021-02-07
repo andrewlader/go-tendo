@@ -11,7 +11,7 @@ import (
 func main() {
 	path, logLevel := parseArguments()
 
-	tendo := tendo.NewTendo(logLevel)
+	tendo := tendo.NewTendo(tendo.LanguageType(tendo.Golang), logLevel)
 	tendo.Inspect(path)
 
 	tendo.DisplayTotals()
@@ -31,7 +31,7 @@ func parseArguments() (string, tendo.LogLevel) {
 	flag.Parse()
 
 	if len(flag.Args()) < 1 {
-		log.Print("Failed to provide enough arguments: no path was provided")
+		log.Fatal("Failed to provide enough arguments: no path was provided")
 	}
 
 	path := flag.Arg(0)

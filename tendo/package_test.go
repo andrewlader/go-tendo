@@ -9,34 +9,34 @@ const (
 )
 
 func TestPackageAddObjectSuccess(t *testing.T) {
-	pkg := newPackage(expectedPackageName)
+	pkg := newLibrary(expectedPackageName)
 
-	pkg.addObject(expectedPackageObjectName)
+	pkg.addClass(expectedPackageObjectName)
 
 	if pkg.name != expectedPackageName {
 		t.Errorf("Failed to return proper pkg.name. Expected '%s', but got '%s'", expectedPackageName, pkg.name)
 	}
-	if pkg.getObjectCount() != 1 {
-		t.Errorf("Failed to return proper number of objects. Expected 1, but got %d", pkg.getObjectCount())
+	if pkg.getClassCount() != 1 {
+		t.Errorf("Failed to return proper number of objects. Expected 1, but got %d", pkg.getClassCount())
 	}
-	if (pkg.getObjectCount() == 1) && (pkg.objects[expectedPackageObjectName].name != expectedPackageObjectName) {
-		t.Errorf("Failed to return proper object name. Expected '%s', but got '%s'", expectedPackageObjectName, pkg.objects[expectedPackageObjectName].name)
+	if (pkg.getClassCount() == 1) && (pkg.classes[expectedPackageObjectName].name != expectedPackageObjectName) {
+		t.Errorf("Failed to return proper object name. Expected '%s', but got '%s'", expectedPackageObjectName, pkg.classes[expectedPackageObjectName].name)
 	}
 }
 
 func TestPackageAddSameObjectError(t *testing.T) {
-	pkg := newPackage(expectedPackageName)
+	pkg := newLibrary(expectedPackageName)
 
-	pkg.addObject(expectedPackageObjectName)
+	pkg.addClass(expectedPackageObjectName)
 
-	err := pkg.addObject(expectedPackageObjectName)
+	err := pkg.addClass(expectedPackageObjectName)
 	if err == nil {
 		t.Error("Failed to get an error when adding the same object name to the same package")
 	}
 }
 
 func TestPackageAddFunctionSuccess(t *testing.T) {
-	pkg := newPackage(expectedPackageName)
+	pkg := newLibrary(expectedPackageName)
 
 	pkg.addFunction(expectedPackageFunctionName)
 
@@ -49,7 +49,7 @@ func TestPackageAddFunctionSuccess(t *testing.T) {
 }
 
 func TestPackageAddSameFunctionError(t *testing.T) {
-	pkg := newPackage(expectedPackageName)
+	pkg := newLibrary(expectedPackageName)
 
 	pkg.addFunction(expectedPackageFunctionName)
 

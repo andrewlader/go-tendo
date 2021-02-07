@@ -6,7 +6,7 @@ func TestObjectAddMethodSuccess(t *testing.T) {
 	const expectedObjectName = "simpleObject"
 	const expectedObjectMethodName = "simpleObjectMethod"
 
-	obj := object{
+	obj := Class{
 		name: expectedObjectName,
 	}
 
@@ -27,7 +27,7 @@ func TestObjectAddSameMethodError(t *testing.T) {
 	const expectedObjectName = "simpleObject"
 	const expectedObjectMethodName = "simpleObjectMethod"
 
-	obj := object{
+	obj := Class{
 		name: expectedObjectName,
 	}
 

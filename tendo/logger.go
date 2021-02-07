@@ -18,43 +18,43 @@ const (
 	logAlways // internal use only
 )
 
-type logger struct {
+type Logger struct {
 	level LogLevel
 }
 
-func newLogger(level LogLevel) *logger {
+func newLogger(level LogLevel) *Logger {
 	log.SetPrefix("{go-tendo} ")
 
 	if (level < LogAll) || (level > logAlways) {
 		return nil
 	}
 
-	return &logger{
+	return &Logger{
 		level: level,
 	}
 }
 
-func (logger *logger) println(logLevel LogLevel, output string) {
-	if logLevel >= logger.level {
+func (theLogger *Logger) println(logLevel LogLevel, output string) {
+	if logLevel >= theLogger.level {
 		fmt.Println(output)
 	}
 }
 
-func (logger *logger) printfln(logLevel LogLevel, format string, args ...interface{}) {
-	if logLevel >= logger.level {
+func (theLogger *Logger) printfln(logLevel LogLevel, format string, args ...interface{}) {
+	if logLevel >= theLogger.level {
 		output := fmt.Sprintf(format, args...)
 		fmt.Println(output)
 	}
 }
 
-func (logger *logger) printf(logLevel LogLevel, format string, args ...interface{}) {
-	if logLevel >= logger.level {
+func (theLogger *Logger) printf(logLevel LogLevel, format string, args ...interface{}) {
+	if logLevel >= theLogger.level {
 		log.Print(fmt.Sprintf(format, args...))
 	}
 }
 
-func (logger *logger) fatalf(logLevel LogLevel, format string, args ...interface{}) {
-	if logLevel >= logger.level {
+func (theLogger *Logger) fatalf(logLevel LogLevel, format string, args ...interface{}) {
+	if logLevel >= theLogger.level {
 		log.Fatal(fmt.Sprintf(format, args...))
 	}
 }
