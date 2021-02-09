@@ -8,17 +8,23 @@ import (
 	"github.com/andrewlader/go-tendo/tendo"
 )
 
-func main() {
-	path, logLevel := parseArguments()
+var path string
+var languageType tendo.LanguageType
+var logLevel tendo.LogLevel
 
-	tendo := tendo.NewTendo(tendo.LanguageType(tendo.Golang), logLevel)
-	tendo.Inspect(path)
+func init() {
+	parseArguments()
+}
+
+func main() {
+	tendo := tendo.NewTendo(logLevel)
+	tendo.Inspect(path, languageType)
 
 	tendo.DisplayTotals()
 }
 
-func parseArguments() (string, tendo.LogLevel) {
-	var logLevel string
+func parseArguments() {
+	var logLevelFlag string
 	var logLevelmapping = map[string]tendo.LogLevel{
 		"all":      tendo.LogAll,
 		"trace":    tendo.LogTrace,
@@ -27,15 +33,14 @@ func parseArguments() (string, tendo.LogLevel) {
 		"errors":   tendo.LogErrors,
 	}
 
-	flag.StringVar(&logLevel, "log", "all", "defines the level for logging output")
-	flag.Parse()
-
 	if len(flag.Args()) < 1 {
 		log.Fatal("Failed to provide enough arguments: no path was provided")
 	}
 
-	path := flag.Arg(0)
-	loggingLevel := logLevelmapping[strings.ToLower(logLevel)]
+	flag.StringVar(&logLevelFlag, "log", "all", "defines the level for logging output")
+	flag.Parse()
 
-	return path, loggingLevel
+	path = flag.Arg(0)
+	languageType = tendo.LanguageType(tendo.Golang)
+	logLevel = logLevelmapping[strings.ToLower(logLevelFlag)]
 }

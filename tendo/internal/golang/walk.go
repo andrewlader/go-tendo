@@ -54,7 +54,7 @@ func (golang *Golang) inspectNode(node ast.Node) ast.Visitor {
 		}
 
 	case *ast.File:
-		// golang.log.Printf(tendo.LogInfo, "file info: %v", node)
+		// ignore files for now...
 		return VisitorFunc(golang.inspectNode)
 
 	case *ast.FuncDecl:
@@ -75,7 +75,6 @@ func (golang *Golang) inspectPackage(pkg *ast.Package) bool {
 	pkg = golang.pruneTestFiles(pkg)
 
 	pkgInfo := &internal.LibraryInfo{
-		// Parent: pkg.Scope.Outer.String(),
 		Name: packageName,
 	}
 	golang.pkgChan <- pkgInfo

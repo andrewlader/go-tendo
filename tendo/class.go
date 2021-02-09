@@ -11,7 +11,7 @@ func newClass(name string) *Class {
 	}
 }
 
-func (obj *Class) addMethod(name string, logger *Logger) {
+func (obj *Class) addMethod(name string, theLogger *Logger) {
 	methodFound := false
 	for _, existingMethod := range obj.methods {
 		if existingMethod == name {
@@ -21,10 +21,10 @@ func (obj *Class) addMethod(name string, logger *Logger) {
 
 	if !methodFound {
 		obj.methods = append(obj.methods, name)
-		logger.printf(LogTrace, "Added method %s to class %s", name, obj.name)
+		theLogger.printf(LogTrace, "Added method %s to class %s", name, obj.name)
 	}
 }
 
-func (obj *Class) GetMethodCount() int {
+func (obj *Class) getMethodCount() int {
 	return len(obj.methods)
 }

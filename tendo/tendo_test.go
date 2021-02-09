@@ -1,6 +1,7 @@
 package tendo
 
 import (
+	"log"
 	"testing"
 )
 
@@ -10,9 +11,9 @@ func TestTendoToString(t *testing.T) {
 
 	tendo := NewTendo(LogErrors)
 	tendo.version = testVersion
-	tendo.Inspect(targetPath)
+	tendo.Inspect(targetPath, LanguageType(Golang))
 
-	actualTestOutput := tendo.toString()
+	actualTestOutput := tendo.ToString()
 
 	if actualTestOutput != expectedTestOutput {
 		t.Errorf("The results of the toString() method did not match the expected results\nExpected:\n%s\n\nActual:\n%s",
@@ -28,7 +29,7 @@ func TestTendoDisplayTotals(t *testing.T) {
 
 	tendo := NewTendo(LogErrors)
 	tendo.version = testVersion
-	tendo.Inspect(targetPath)
+	tendo.Inspect(targetPath, LanguageType(Golang))
 
 	tendo.DisplayTotals()
 }
@@ -37,61 +38,63 @@ func TestTendoTestClearSuccess(t *testing.T) {
 	const targetPath = "../tests/exampletest"
 
 	tendo := NewTendo(LogErrors)
-	tendo.Inspect(targetPath)
+	tendo.Inspect(targetPath, LanguageType(Golang))
 
-	packages, _, _, _ := tendo.GetTotals()
+	libraries, _, _, _ := tendo.GetTotals()
 
-	tendo.Clear()
+	tendo.listener.stop()
+	tendo.listener.restart()
 
-	newPackages, _, _, _ := tendo.GetTotals()
+	newLibraries, _, _, _ := tendo.GetTotals()
 
-	if (packages != 1) || (newPackages != 0) {
+	if (libraries != 1) || (newLibraries != 0) {
 		t.Error("Failed to clear out the data in Tendo instance")
 	}
 }
 
-func TestTendoPackageSuccess(t *testing.T) {
+func TestTendoLibrarySuccess(t *testing.T) {
 	const targetPath = "./"
-	const expectedPackages = 1
-	const expectedStructs = 4
-	const expectedMethods = 23
-	const expectedFunctions = 6
+	const expectedLibraries = 4
+	const expectedClasses = 6
+	const expectedMethods = 26
+	const expectedFunctions = 10
 
-	testTendoWithPath(t, LogAll, targetPath, expectedPackages, expectedStructs, expectedMethods, expectedFunctions)
+	testTendoWithPath(t, LogAll, targetPath, expectedLibraries, expectedClasses, expectedMethods, expectedFunctions)
 }
 
 func TestTendoBasicSuccess(t *testing.T) {
 	const targetPath = "../tests/exampletest"
-	const expectedPackages = 1
-	const expectedStructs = 1
+	const expectedLibraries = 1
+	const expectedClasses = 1
 	const expectedMethods = 2
 	const expectedFunctions = 1
 
-	testTendoWithPath(t, LogInfo, targetPath, expectedPackages, expectedStructs, expectedMethods, expectedFunctions)
+	testTendoWithPath(t, LogInfo, targetPath, expectedLibraries, expectedClasses, expectedMethods, expectedFunctions)
 }
 
-func TestTendoIgnoreTestPackageSuccess(t *testing.T) {
+func TestTendoIgnoreTestLibrarySuccess(t *testing.T) {
 	const targetPath = "../tests/example_test"
-	const expectedPackages = 0
-	const expectedStructs = 0
+	const expectedLibraries = 0
+	const expectedClasses = 0
 	const expectedMethods = 0
 	const expectedFunctions = 0
 
-	testTendoWithPath(t, LogWarnings, targetPath, expectedPackages, expectedStructs, expectedMethods, expectedFunctions)
+	testTendoWithPath(t, LogWarnings, targetPath, expectedLibraries, expectedClasses, expectedMethods, expectedFunctions)
 }
 
-func testTendoWithPath(t *testing.T, logLevel LogLevel, targetPath string, expectedPackages int, expectedStructs int, expectedMethods int, expectedFunctions int) {
+func testTendoWithPath(t *testing.T, logLevel LogLevel, targetPath string, expectedLibraries int, expectedClasses int, expectedMethods int, expectedFunctions int) {
 	tendo := NewTendo(LogErrors)
 
-	tendo.Inspect(targetPath)
+	tendo.Inspect(targetPath, LanguageType(Golang))
 
-	packages, structCount, methodCount, functions := tendo.GetTotals()
+	libraries, classCount, methodCount, functions := tendo.GetTotals()
+	log.Printf("Tendo With Path: %d, %d, %d, %d", libraries, classCount, methodCount, functions)
 
-	if packages != expectedPackages {
-		t.Errorf("Number of packages should have been %d, but found %d", expectedPackages, packages)
+	if libraries != expectedLibraries {
+		t.Errorf("Number of libraries should have been %d, but found %d", expectedLibraries, libraries)
 	}
-	if structCount != expectedStructs {
-		t.Errorf("Number of structs should have been %d, but found %d", expectedStructs, structCount)
+	if classCount != expectedClasses {
+		t.Errorf("Number of structs should have been %d, but found %d", expectedClasses, classCount)
 	}
 	if methodCount != expectedMethods {
 		t.Errorf("Number of methods should have been %d, but found %d", expectedMethods, methodCount)
@@ -118,15 +121,15 @@ Version 0.0.1
 
 Source path: ../tests/exampletest
 
-    package exampletest
-        struct example{}
+    library exampletest
+        class/struct example{}
             method exampleMethod()
             method exampleMethodTwo()
         function exampleFunction()
 
 Totals:
 =======
-Package Count: 1
+Library Count: 1
 Struct Count: 1
 Method Count: 2
 Function Count: 1

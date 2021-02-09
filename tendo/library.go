@@ -15,24 +15,24 @@ func newLibrary(name string) *library {
 	}
 }
 
-func (lib *library) addClass(name string, logger *Logger) {
+func (lib *library) addClass(name string, theLogger *Logger) {
 	_, ok := lib.classes[name]
 	if !ok {
 		obj := newClass(name)
 		lib.classes[name] = obj
-		logger.printf(LogTrace, "Added class %s to package %s", name, lib.name)
+		theLogger.printf(LogTrace, "Added class %s to package %s", name, lib.name)
 	}
 }
 
-func (lib *library) addLibrary(name string, logger *Logger) {
+func (lib *library) addLibrary(name string, theLogger *Logger) {
 	_, ok := lib.libraries[name]
 	if !ok {
 		lib.libraries[name] = newLibrary(name)
-		logger.printf(LogTrace, "Added package %s to package %s", name, lib.name)
+		theLogger.printf(LogTrace, "Added package %s to package %s", name, lib.name)
 	}
 }
 
-func (lib *library) addFunction(name string, logger *Logger) {
+func (lib *library) addFunction(name string, theLogger *Logger) {
 	funcFound := false
 	for _, existingFunc := range lib.functions {
 		if existingFunc == name {
@@ -42,10 +42,14 @@ func (lib *library) addFunction(name string, logger *Logger) {
 
 	if !funcFound {
 		lib.functions = append(lib.functions, name)
-		logger.printf(LogTrace, "Added function %s to package %s", name, lib.name)
+		theLogger.printf(LogTrace, "Added function %s to package %s", name, lib.name)
 	}
 }
 
 func (lib *library) getSubPackageCount() int {
 	return len(lib.libraries)
+}
+
+func (lib *library) getClassCount() int {
+	return len(lib.classes)
 }

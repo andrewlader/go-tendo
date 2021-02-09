@@ -1,6 +1,10 @@
 package tendo
 
-import "github.com/andrewlader/go-tendo/tendo/internal"
+import (
+	"log"
+
+	"github.com/andrewlader/go-tendo/tendo/internal"
+)
 
 type listener struct {
 	root         *root
@@ -14,17 +18,19 @@ type listener struct {
 
 func newListener(root *root, logger *Logger) *listener {
 	return &listener{
-		root:         root,
+		root:         newRoot(),
 		logger:       logger,
 		libChan:      make(chan *internal.LibraryInfo),
 		classChan:    make(chan *internal.ClassInfo),
 		methodChan:   make(chan *internal.MethodInfo),
 		functionChan: make(chan *internal.FunctionInfo),
-		quitChan:     make(chan bool),
+		quitChan:     make(chan bool, 1),
 	}
 }
 
-func (listener *listener) Listen() {
+func (listener *listener) start() {
+	defer listener.handleStop()
+
 	keepGoing := true
 
 	for keepGoing {
@@ -57,7 +63,45 @@ func (listener *listener) Listen() {
 			keepGoing = false
 		}
 	}
+}
 
-	listener.logger.printfln(LogInfo, "Shutting down the listener...")
-	listener.logger.printfln(LogInfo, "Shutdown of dispatcher is complete...")
+func (listener *listener) stop() {
+	// all done, so shutdown
+	listener.quitChan <- true
+}
+
+func (listener *listener) cleanup() {
+	// cleanup
+	listener.root = nil
+	close(listener.libChan)
+	close(listener.classChan)
+	close(listener.methodChan)
+	close(listener.functionChan)
+	close(listener.quitChan)
+}
+
+func (listener *listener) restart() {
+	listener.cleanup()
+
+	listener.root = newRoot()
+	listener.libChan = make(chan *internal.LibraryInfo)
+	listener.classChan = make(chan *internal.ClassInfo)
+	listener.methodChan = make(chan *internal.MethodInfo)
+	listener.functionChan = make(chan *internal.FunctionInfo)
+	listener.quitChan = make(chan bool, 1)
+}
+
+func (listener *listener) handleStop() {
+	listener.logger.printfln(LogInfo, "Stopping the listener...")
+
+	recovery := recover()
+	if recovery != nil {
+		if listener.logger != nil {
+			listener.logger.printf(LogErrors, "Panic occurred:\n\n%v", recovery)
+		} else {
+			log.Printf("Panic occurred:\n\n%v", recovery)
+		}
+	}
+
+	listener.logger.printfln(LogInfo, "Stopped the listener...")
 }

@@ -39,47 +39,46 @@ const asciiArtTendo = `
  `
 
 // NewTendo creates a new instance of Tendo and returns a reference to it
-func NewTendo(languageType LanguageType, logLevel LogLevel) *Tendo {
-	var walker ITendo
-
-	logger := newLogger(logLevel)
-	if logger == nil {
+func NewTendo(logLevel LogLevel) *Tendo {
+	theLogger := newLogger(logLevel)
+	if theLogger == nil {
 		log.Fatal("Failed to created the logger, so quitting...")
 	}
 
-	root := newRoot()
-	listener := newListener(root, logger)
-
-	if languageType == LanguageType(Golang) {
-		walker = golang.NewGolang(listener.libChan, listener.classChan, listener.methodChan, listener.functionChan)
-	}
-
 	return &Tendo{
-		version:      "0.0.2",
-		languageType: languageType,
-		listener:     listener,
-		walker:       walker,
-		logger:       logger,
+		version: "0.0.2",
+		logger:  theLogger,
 	}
 }
 
-// Clear clears out all of the data
-// func (tendo *Tendo) Clear() {
-// 	tendo.packages = make(map[string]*library)
-// 	tendo.functions = nil
-// }
-
 // Inspect walks through all of the Go files specified in the path and counts the packages, structs and methods
-func (tendo *Tendo) Inspect(path string) {
+func (tendo *Tendo) Inspect(path string, languageType LanguageType) {
+	tendo.sourcePath = path
+
 	fullpath, err := filepath.Abs(path)
 	if err != nil {
 		fullpath = path
 	}
 
+	if tendo.listener != nil {
+		tendo.listener.stop()
+	}
+
+	root := newRoot()
+	tendo.listener = newListener(root, tendo.logger)
+
+	if languageType == LanguageType(Golang) {
+		tendo.walker = golang.NewGolang(
+			tendo.listener.libChan,
+			tendo.listener.classChan,
+			tendo.listener.methodChan,
+			tendo.listener.functionChan)
+	}
+
 	tendo.logger.println(LogAll, asciiArtTendo)
 	tendo.logger.printf(LogAll, "### Analysis initiating for path --> %s", fullpath)
 
-	go tendo.listener.Listen()
+	go tendo.listener.start()
 	tendo.walker.Walk(fullpath)
 
 	folders, err := getListOfFolders(fullpath)
@@ -93,8 +92,12 @@ func (tendo *Tendo) Inspect(path string) {
 		}
 	}
 
+	tendo.Shutdown()
+}
+
+func (tendo *Tendo) Shutdown() {
 	// all done, so shutdown
-	tendo.listener.quitChan <- true
+	tendo.listener.stop()
 }
 
 func getListOfFolders(path string) ([]string, error) {
@@ -159,7 +162,7 @@ func (tendo *Tendo) ToString() string {
 
 	// for each of the packages
 	for _, pkg := range tendo.listener.root.libraries {
-		tree = append(tree, fmt.Sprintf("%spackage %s", indent, pkg.name))
+		tree = append(tree, fmt.Sprintf("%slibrary %s", indent, pkg.name))
 		// display all the structs in the package
 		for _, class := range pkg.classes {
 			tree = append(tree, fmt.Sprintf("%s%sclass/struct %s{}", indent, indent, class.name))
@@ -177,7 +180,7 @@ func (tendo *Tendo) ToString() string {
 
 	packages, structCount, methodCount, functions := tendo.GetTotals()
 
-	tree = append(tree, fmt.Sprintf("\nTotals:\n=======\nPackage Count: %d\nStruct Count: %d\nMethod Count: %d\nFunction Count: %d\n",
+	tree = append(tree, fmt.Sprintf("\nTotals:\n=======\nLibrary Count: %d\nStruct Count: %d\nMethod Count: %d\nFunction Count: %d\n",
 		packages, structCount, methodCount, functions))
 
 	output := fmt.Sprintf("%s\n%s", outputPrefix, strings.Join(tree[:], "\n"))

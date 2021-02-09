@@ -11,7 +11,7 @@ const (
 func TestPackageAddObjectSuccess(t *testing.T) {
 	pkg := newLibrary(expectedPackageName)
 
-	pkg.addClass(expectedPackageObjectName)
+	pkg.addClass(expectedPackageObjectName, theLogger)
 
 	if pkg.name != expectedPackageName {
 		t.Errorf("Failed to return proper pkg.name. Expected '%s', but got '%s'", expectedPackageName, pkg.name)
@@ -25,20 +25,20 @@ func TestPackageAddObjectSuccess(t *testing.T) {
 }
 
 func TestPackageAddSameObjectError(t *testing.T) {
+	defer handlePanic(t, "library")
+
 	pkg := newLibrary(expectedPackageName)
 
-	pkg.addClass(expectedPackageObjectName)
+	pkg.addClass(expectedPackageObjectName, theLogger)
 
-	err := pkg.addClass(expectedPackageObjectName)
-	if err == nil {
-		t.Error("Failed to get an error when adding the same object name to the same package")
-	}
+	// duplicate call should cause no panic or other issues
+	pkg.addClass(expectedPackageObjectName, theLogger)
 }
 
 func TestPackageAddFunctionSuccess(t *testing.T) {
 	pkg := newLibrary(expectedPackageName)
 
-	pkg.addFunction(expectedPackageFunctionName)
+	pkg.addFunction(expectedPackageFunctionName, theLogger)
 
 	if len(pkg.functions) != 1 {
 		t.Errorf("Failed to return proper number of functions. Expected 1, but got %d", len(pkg.functions))
@@ -49,12 +49,12 @@ func TestPackageAddFunctionSuccess(t *testing.T) {
 }
 
 func TestPackageAddSameFunctionError(t *testing.T) {
+	defer handlePanic(t, "library")
+
 	pkg := newLibrary(expectedPackageName)
 
-	pkg.addFunction(expectedPackageFunctionName)
+	pkg.addFunction(expectedPackageFunctionName, theLogger)
 
-	err := pkg.addFunction(expectedPackageFunctionName)
-	if err == nil {
-		t.Error("Failed to get an error when adding the same function name to the same package")
-	}
+	// duplicate call should cause no panic or other issues
+	pkg.addFunction(expectedPackageFunctionName, theLogger)
 }
