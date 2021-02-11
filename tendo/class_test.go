@@ -1,16 +1,22 @@
 package tendo
 
-import "testing"
+import (
+	"testing"
+)
 
-func TestObjectAddMethodSuccess(t *testing.T) {
+var theLogger = &Logger{
+	level: LogLevel(LogAll),
+}
+
+func TestClassAddMethodSuccess(t *testing.T) {
 	const expectedObjectName = "simpleObject"
 	const expectedObjectMethodName = "simpleObjectMethod"
 
-	obj := object{
+	obj := Class{
 		name: expectedObjectName,
 	}
 
-	obj.addMethod(expectedObjectMethodName)
+	obj.addMethod(expectedObjectMethodName, theLogger)
 
 	if obj.name != expectedObjectName {
 		t.Errorf("Failed to return proper object.name. Expected '%s', but got '%s'", expectedObjectName, obj.name)
@@ -23,18 +29,18 @@ func TestObjectAddMethodSuccess(t *testing.T) {
 	}
 }
 
-func TestObjectAddSameMethodError(t *testing.T) {
+func TestClassAddSameMethodError(t *testing.T) {
 	const expectedObjectName = "simpleObject"
 	const expectedObjectMethodName = "simpleObjectMethod"
 
-	obj := object{
+	defer handlePanic(t, "class")
+
+	obj := Class{
 		name: expectedObjectName,
 	}
 
-	obj.addMethod(expectedObjectMethodName)
+	obj.addMethod(expectedObjectMethodName, theLogger)
 
-	err := obj.addMethod(expectedObjectMethodName)
-	if err == nil {
-		t.Error("Failed to get an error when adding the same method name to the same object")
-	}
+	// duplicate call should cause no panic or other issues
+	obj.addMethod(expectedObjectMethodName, theLogger)
 }

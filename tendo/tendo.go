@@ -2,24 +2,24 @@ package tendo
 
 import (
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/andrewlader/go-tendo/tendo/internal/golang"
 )
 
 // Tendo is the struct which manages all of the packages in the specified Go project
 type Tendo struct {
+	languageType   LanguageType
 	version        string
 	sourcePath     string
 	currentPath    string
-	logger         *logger
 	currentPackage string
-	packages       map[string]*pkg
-	functions      []string
+	logger         *Logger
+	listener       *listener
+	walker         ITendo
 }
 
 const asciiArtTendoTotals = `
@@ -40,54 +40,19 @@ const asciiArtTendo = `
 
 // NewTendo creates a new instance of Tendo and returns a reference to it
 func NewTendo(logLevel LogLevel) *Tendo {
-	currentPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		log.Fatalf("An error occurred attempting to identify the current path: %v", err)
-	}
-
-	logger := newLogger(logLevel)
-	if logger == nil {
+	theLogger := newLogger(logLevel)
+	if theLogger == nil {
 		log.Fatal("Failed to created the logger, so quitting...")
 	}
 
 	return &Tendo{
-		version:     "0.0.2",
-		currentPath: currentPath,
-		logger:      logger,
-		packages:    make(map[string]*pkg),
+		version: "0.0.2",
+		logger:  theLogger,
 	}
-}
-
-// Clear clears out all of the data
-func (tendo *Tendo) Clear() {
-	tendo.packages = make(map[string]*pkg)
-	tendo.functions = nil
-}
-
-// DisplayTotals calls GetTotals() and then displays the results to the console
-func (tendo *Tendo) DisplayTotals() {
-	tendo.logger.println(logAlways, tendo.toString())
-}
-
-// GetTotals returns the total number of packages, structs and methods
-func (tendo *Tendo) GetTotals() (int, int, int, int) {
-	structCount := 0
-	methodCount := 0
-	functionCount := 0
-
-	for _, pkg := range tendo.packages {
-		structCount += pkg.getObjectCount()
-		functionCount += len(pkg.functions)
-		for _, obj := range pkg.objects {
-			methodCount += obj.getMethodCount()
-		}
-	}
-
-	return len(tendo.packages), structCount, methodCount, functionCount
 }
 
 // Inspect walks through all of the Go files specified in the path and counts the packages, structs and methods
-func (tendo *Tendo) Inspect(path string) {
+func (tendo *Tendo) Inspect(path string, languageType LanguageType) {
 	tendo.sourcePath = path
 
 	fullpath, err := filepath.Abs(path)
@@ -95,8 +60,26 @@ func (tendo *Tendo) Inspect(path string) {
 		fullpath = path
 	}
 
+	if tendo.listener != nil {
+		tendo.listener.stop()
+	}
+
+	root := newRoot()
+	tendo.listener = newListener(root, tendo.logger)
+
+	if languageType == LanguageType(Golang) {
+		tendo.walker = golang.NewGolang(
+			tendo.listener.libChan,
+			tendo.listener.classChan,
+			tendo.listener.methodChan,
+			tendo.listener.functionChan)
+	}
+
 	tendo.logger.println(LogAll, asciiArtTendo)
-	tendo.logger.printf(LogAll, "### Analysis initiating for path --> %s", path)
+	tendo.logger.printf(LogAll, "### Analysis initiating for path --> %s", fullpath)
+
+	go tendo.listener.start()
+	tendo.walker.Walk(fullpath)
 
 	folders, err := getListOfFolders(fullpath)
 	if err != nil {
@@ -105,133 +88,72 @@ func (tendo *Tendo) Inspect(path string) {
 
 	if err == nil {
 		for _, path := range folders {
-			tendo.inspectFolder(path)
+			tendo.walker.Walk(path)
 		}
 	}
+
+	tendo.Shutdown()
 }
 
-func (tendo *Tendo) inspectFolder(path string) {
-	fileSet := token.NewFileSet()
-
-	relativePath, err := filepath.Rel(tendo.currentPath, path)
-	if err != nil {
-		tendo.logger.printf(LogTrace, "trace warning: %v", err)
-		relativePath = path
-	}
-	tendo.logger.printf(LogTrace, "## Inspecting path --> %s", relativePath)
-
-	pkgs, err := parser.ParseDir(fileSet, path, nil, 0)
-	if err != nil {
-		tendo.logger.printf(LogWarnings, "Skipping path, failed to parse path: %v", err)
-	}
-
-	for _, pkg := range pkgs {
-		ast.Walk(VisitorFunc(tendo.inspectNode), pkg)
-	}
+func (tendo *Tendo) Shutdown() {
+	// all done, so shutdown
+	tendo.listener.stop()
 }
 
-func (tendo *Tendo) inspectNode(node ast.Node) ast.Visitor {
-	switch nodeType := node.(type) {
-	case *ast.Package:
-		if tendo.inspectPackage(nodeType) {
-			return VisitorFunc(tendo.inspectNode)
+func getListOfFolders(path string) ([]string, error) {
+	folders := []string{}
+	err := filepath.Walk(path, func(path string, file os.FileInfo, err error) error {
+		if err != nil {
+			return err
 		}
 
-	case *ast.File:
-		return VisitorFunc(tendo.inspectNode)
-
-	case *ast.FuncDecl:
-		tendo.inspectFunction(nodeType)
-	}
-
-	return nil
-}
-
-func (tendo *Tendo) inspectFunction(function *ast.FuncDecl) {
-	if function.Recv != nil {
-		field := function.Recv.List[0]
-		if receiver, ok := field.Type.(*ast.StarExpr); ok {
-			structName := fmt.Sprintf("%s", receiver.X)
-			tendo.addStruct(structName)
-			tendo.addMethod(structName, function.Name.Name)
+		if isValidFolder(file, path) {
+			folders = append(folders, path)
 		}
-	} else {
-		tendo.logger.printf(LogTrace, "Added function --> %s", function.Name.Name)
-		tendo.addFunction(function.Name.Name)
-	}
+		return nil
+	})
+
+	return folders, err
 }
 
-func (tendo *Tendo) inspectPackage(pkg *ast.Package) bool {
-	const ignoreTestPackages = "_test"
+func isValidFolder(file os.FileInfo, path string) bool {
+	const ignoreHiddenFolders = "."
+	const allowCurrentFolder = "./"
+	const ignoreVendors = "vendor"
+	var ignoreHiddenSubFolders = filepath.ToSlash("/.")
 
-	packageName := pkg.Name
-	if strings.HasSuffix(packageName, ignoreTestPackages) {
-		tendo.logger.printf(LogTrace, "skipping package --> %s", packageName)
-		return false
+	isValid := false
+	if file.IsDir() && !strings.Contains(path, ignoreVendors) && !strings.Contains(path, ignoreHiddenSubFolders) &&
+		(path == allowCurrentFolder || !strings.HasPrefix(path, ignoreHiddenFolders)) {
+		isValid = true
 	}
 
-	pkg = tendo.pruneTestFiles(pkg)
-	tendo.addPackage(packageName)
-	return true
+	return isValid
 }
 
-func (tendo *Tendo) pruneTestFiles(pkg *ast.Package) *ast.Package {
-	const ignoreTestFiles = "_test.go"
+// DisplayTotals calls GetTotals() and then displays the results to the console
+func (tendo *Tendo) DisplayTotals() {
+	tendo.logger.println(logAlways, tendo.ToString())
+}
 
-	// prune off the test packages
-	listOfTestFiles := []string{}
-	for filename := range pkg.Files {
-		if strings.HasSuffix(filename, ignoreTestFiles) {
-			listOfTestFiles = append(listOfTestFiles, filename)
+// GetTotals returns the total number of packages, structs and methods
+func (tendo *Tendo) GetTotals() (int, int, int, int) {
+	structCount := 0
+	methodCount := 0
+	functionCount := 0
+
+	for _, lib := range tendo.listener.root.libraries {
+		structCount += len(lib.classes)
+		functionCount += len(lib.functions)
+		for _, class := range lib.classes {
+			methodCount += len(class.methods)
 		}
 	}
-	for _, filename := range listOfTestFiles {
-		tendo.logger.printf(LogTrace, "Skipping test file --> %s", filename)
-		delete(pkg.Files, filename)
-	}
 
-	return pkg
+	return len(tendo.listener.root.libraries), structCount, methodCount, functionCount
 }
 
-func (tendo *Tendo) addPackage(name string) {
-	tendo.currentPackage = name
-
-	_, ok := tendo.packages[name]
-	if !ok {
-		tendo.packages[name] = newPackage(name)
-		tendo.logger.printf(LogTrace, "Added package --> %s", name)
-	}
-}
-
-func (tendo *Tendo) addStruct(structName string) {
-	err := tendo.packages[tendo.currentPackage].addObject(structName)
-	if err != nil {
-		tendo.logger.printf(LogTrace, "%s", err)
-	} else {
-		tendo.logger.printf(LogTrace, "Added struct --> %s", structName)
-	}
-}
-
-func (tendo *Tendo) addFunction(name string) {
-	err := tendo.packages[tendo.currentPackage].addFunction(name)
-	if err != nil {
-		tendo.logger.printf(LogTrace, "%s", err)
-	} else {
-		tendo.logger.printf(LogTrace, "Added function --> %s", name)
-	}
-}
-
-func (tendo *Tendo) addMethod(structName string, methodName string) {
-	err := tendo.packages[tendo.currentPackage].objects[structName].addMethod(methodName)
-
-	if err != nil {
-		tendo.logger.printf(LogTrace, "%s", err)
-	} else {
-		tendo.logger.printf(LogTrace, "Added method --> %s", methodName)
-	}
-}
-
-func (tendo *Tendo) toString() string {
+func (tendo *Tendo) ToString() string {
 	const indent = "    "
 
 	outputPrefix := fmt.Sprintf("%s%s\n\nSource path: %s\n", asciiArtTendoTotals, tendo.version, tendo.sourcePath)
@@ -239,13 +161,13 @@ func (tendo *Tendo) toString() string {
 	var tree []string
 
 	// for each of the packages
-	for _, pkg := range tendo.packages {
-		tree = append(tree, fmt.Sprintf("%spackage %s", indent, pkg.name))
+	for _, pkg := range tendo.listener.root.libraries {
+		tree = append(tree, fmt.Sprintf("%slibrary %s", indent, pkg.name))
 		// display all the structs in the package
-		for _, object := range pkg.objects {
-			tree = append(tree, fmt.Sprintf("%s%sstruct %s{}", indent, indent, object.name))
+		for _, class := range pkg.classes {
+			tree = append(tree, fmt.Sprintf("%s%sclass/struct %s{}", indent, indent, class.name))
 			// and display all of the methods for the structs
-			for _, method := range object.methods {
+			for _, method := range class.methods {
 				tree = append(tree, fmt.Sprintf("%s%s%smethod %s()", indent, indent, indent, method))
 			}
 		}
@@ -258,7 +180,7 @@ func (tendo *Tendo) toString() string {
 
 	packages, structCount, methodCount, functions := tendo.GetTotals()
 
-	tree = append(tree, fmt.Sprintf("\nTotals:\n=======\nPackage Count: %d\nStruct Count: %d\nMethod Count: %d\nFunction Count: %d\n",
+	tree = append(tree, fmt.Sprintf("\nTotals:\n=======\nLibrary Count: %d\nStruct Count: %d\nMethod Count: %d\nFunction Count: %d\n",
 		packages, structCount, methodCount, functions))
 
 	output := fmt.Sprintf("%s\n%s", outputPrefix, strings.Join(tree[:], "\n"))
