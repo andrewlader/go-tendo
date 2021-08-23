@@ -87,7 +87,6 @@ func (java *Java) examineFileLineByLine(filename string, pkgName string, lines [
 	currentClassName := ""
 
 	for _, line := range lines {
-		log.Printf("inspecting line: %s", line)
 		classNames := regexClassNames.FindStringSubmatch(line)
 		lenClassNames := len(classNames) - 1
 		functionNames := regexFunctionNames.FindStringSubmatch(line)
@@ -97,7 +96,6 @@ func (java *Java) examineFileLineByLine(filename string, pkgName string, lines [
 
 		if lenClassNames > 0 {
 			currentClassName = classNames[lenClassNames]
-			log.Printf("found class name: \"%s\"", currentClassName)
 			java.handleClass(filename, pkgName, currentClassName)
 			stack.push(withinClass)
 			// found a class, so start counting braces at 1 since there was one in that line
@@ -106,10 +104,8 @@ func (java *Java) examineFileLineByLine(filename string, pkgName string, lines [
 			currentFunctionName := functionNames[lenFunctionNames]
 
 			if stack.peek() == withinClass {
-				log.Printf("found method name: \"%s\"", currentFunctionName)
 				java.handleMethod(currentClassName, currentFunctionName)
 			} else {
-				log.Printf("found function name: \"%s\"", currentFunctionName)
 				java.handleFunction(currentFunctionName)
 			}
 			stack.push(withinMethodOrFunction)
