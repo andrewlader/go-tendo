@@ -25,6 +25,7 @@ func main() {
 
 func parseArguments() {
 	var logLevelFlag string
+	var languageTypeFlag string
 	var logLevelmapping = map[string]tendo.LogLevel{
 		"all":      tendo.LogAll,
 		"trace":    tendo.LogTrace,
@@ -32,15 +33,19 @@ func parseArguments() {
 		"warnings": tendo.LogWarnings,
 		"errors":   tendo.LogErrors,
 	}
-
-	if len(flag.Args()) < 1 {
-		log.Fatal("Failed to provide enough arguments: no path was provided")
+	var languageTypemapping = map[string]tendo.LanguageType{
+		"go":   tendo.LanguageType(tendo.Golang),
+		"java": tendo.LanguageType(tendo.Java),
 	}
 
+	flag.StringVar(&path, "path", "./", "defines the path to walk")
 	flag.StringVar(&logLevelFlag, "log", "all", "defines the level for logging output")
+	flag.StringVar(&languageTypeFlag, "language", "go", "defines the programming language for the path")
+
 	flag.Parse()
 
-	path = flag.Arg(0)
-	languageType = tendo.LanguageType(tendo.Golang)
+	languageType = tendo.LanguageType(languageTypemapping[languageTypeFlag])
 	logLevel = logLevelmapping[strings.ToLower(logLevelFlag)]
+
+	log.Printf("path: %s, language type: %s, log level: %s", path, languageTypeFlag, logLevelFlag)
 }

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/andrewlader/go-tendo/tendo/internal/golang"
+	"github.com/andrewlader/go-tendo/tendo/internal/java"
 )
 
 // Tendo is the struct which manages all of the packages in the specified Go project
@@ -67,8 +68,15 @@ func (tendo *Tendo) Inspect(path string, languageType LanguageType) {
 	root := newRoot()
 	tendo.listener = newListener(root, tendo.logger)
 
-	if languageType == LanguageType(Golang) {
+	switch languageType {
+	case LanguageType(Golang):
 		tendo.walker = golang.NewGolang(
+			tendo.listener.libChan,
+			tendo.listener.classChan,
+			tendo.listener.methodChan,
+			tendo.listener.functionChan)
+	case LanguageType(Java):
+		tendo.walker = java.NewJava(
 			tendo.listener.libChan,
 			tendo.listener.classChan,
 			tendo.listener.methodChan,
@@ -79,6 +87,7 @@ func (tendo *Tendo) Inspect(path string, languageType LanguageType) {
 	tendo.logger.printf(LogAll, "### Analysis initiating for path --> %s", fullpath)
 
 	go tendo.listener.start()
+	log.Printf("Gonna go do: %v", fullpath)
 	tendo.walker.Walk(fullpath)
 
 	folders, err := getListOfFolders(fullpath)
