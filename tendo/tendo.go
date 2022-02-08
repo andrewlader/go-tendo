@@ -84,6 +84,8 @@ func (tendo *Tendo) Inspect(path string, languageType LanguageType) {
 	}
 
 	tendo.logger.println(LogAll, asciiArtTendo)
+	tendo.logger.printfln(LogAll, "Version: %s", tendo.version)
+	tendo.logger.println(LogAll, "")
 	tendo.logger.printf(LogAll, "### Analysis initiating for path --> %s", fullpath)
 
 	go tendo.listener.start()
