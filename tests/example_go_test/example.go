@@ -1,4 +1,4 @@
-package example_test
+package example_test_code
 
 type example struct {
 }
