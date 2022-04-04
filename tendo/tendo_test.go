@@ -7,7 +7,7 @@ import (
 
 func TestTendoToString(t *testing.T) {
 	const testVersion = "0.0.1"
-	const targetPath = "../tests/exampletest"
+	const targetPath = "../tests/example_go_test"
 
 	tendo := NewTendo(LogErrors)
 	tendo.version = testVersion
@@ -23,7 +23,7 @@ func TestTendoToString(t *testing.T) {
 
 func TestTendoDisplayTotals(t *testing.T) {
 	const testVersion = "0.0.1"
-	const targetPath = "../tests/exampletest"
+	const targetPath = "../tests/example_go_test"
 
 	defer handlePanic(t, "Tendo")
 
@@ -35,7 +35,7 @@ func TestTendoDisplayTotals(t *testing.T) {
 }
 
 func TestTendoTestClearSuccess(t *testing.T) {
-	const targetPath = "../tests/exampletest"
+	const targetPath = "../tests/example_go_test"
 
 	tendo := NewTendo(LogErrors)
 	tendo.Inspect(targetPath, LanguageType(Golang))
@@ -63,7 +63,7 @@ func TestTendoLibrarySuccess(t *testing.T) {
 }
 
 func TestTendoBasicSuccess(t *testing.T) {
-	const targetPath = "../tests/exampletest"
+	const targetPath = "../tests/example_go_test"
 	const expectedLibraries = 1
 	const expectedClasses = 1
 	const expectedMethods = 2
@@ -73,7 +73,7 @@ func TestTendoBasicSuccess(t *testing.T) {
 }
 
 func TestTendoIgnoreTestLibrarySuccess(t *testing.T) {
-	const targetPath = "../tests/example_test"
+	const targetPath = "../tests/example_go_test"
 	const expectedLibraries = 0
 	const expectedClasses = 0
 	const expectedMethods = 0
@@ -119,9 +119,9 @@ const expectedTestOutput = `
 
 Version 0.0.1
 
-Source path: ../tests/exampletest
+Source path: ../tests/example_go_test
 
-    library exampletest
+    library example_go_test
         class/struct example{}
             method exampleMethod()
             method exampleMethodTwo()
